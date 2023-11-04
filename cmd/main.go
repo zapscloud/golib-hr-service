@@ -9,7 +9,7 @@ import (
 	"github.com/kr/pretty"
 	"github.com/zapscloud/golib-dbutils/db_common"
 	"github.com/zapscloud/golib-hr-repository/hr_common"
-	"github.com/zapscloud/golib-hr-service/hr_services"
+	"github.com/zapscloud/golib-hr-service/hr_service"
 	"github.com/zapscloud/golib-utils/utils"
 )
 
@@ -30,7 +30,7 @@ func GetDBCreds() utils.Map {
 	return dbCreds
 }
 
-func MdbMain(businessid string) hr_services.AttendanceService {
+func MdbMain(businessid string) hr_service.AttendanceService {
 
 	dbCreds := GetDBCreds()
 
@@ -46,7 +46,7 @@ func MdbMain(businessid string) hr_services.AttendanceService {
 
 	dbCreds[hr_common.FLD_BUSINESS_ID] = businessid
 
-	rolesrv, err := hr_services.NewAttendanceService(dbCreds)
+	rolesrv, err := hr_service.NewAttendanceService(dbCreds)
 	log.Println("User Mongo Service Error ", err)
 	return rolesrv
 }
@@ -92,11 +92,11 @@ func main() {
 
 }
 
-func EmptyBusinessAttendance(srv hr_services.AttendanceService) {
+func EmptyBusinessAttendance(srv hr_service.AttendanceService) {
 	log.Println("Attendance Service ")
 }
 
-func CreateAttendance(srv hr_services.AttendanceService) {
+func CreateAttendance(srv hr_service.AttendanceService) {
 
 	indata := utils.Map{
 		"role_id":    "role003",
@@ -110,14 +110,14 @@ func CreateAttendance(srv hr_services.AttendanceService) {
 
 }
 
-func GetAttendance(srv hr_services.AttendanceService) {
+func GetAttendance(srv hr_service.AttendanceService) {
 	res, err := srv.Get("role001")
 	log.Println("Get Attendance", err)
 	pretty.Println(res)
 
 }
 
-func FindAttendance(srv hr_services.AttendanceService) {
+func FindAttendance(srv hr_service.AttendanceService) {
 
 	filter := fmt.Sprintf(`{"%s":"%s"}`, "role_scope", "admin")
 	res, err := srv.Find(filter)
@@ -126,7 +126,7 @@ func FindAttendance(srv hr_services.AttendanceService) {
 
 }
 
-func UpdateAttendance(srv hr_services.AttendanceService) {
+func UpdateAttendance(srv hr_service.AttendanceService) {
 
 	indata := utils.Map{
 		"role_id":   "role001",
@@ -140,7 +140,7 @@ func UpdateAttendance(srv hr_services.AttendanceService) {
 
 }
 
-func DeleteAttendance(srv hr_services.AttendanceService) {
+func DeleteAttendance(srv hr_service.AttendanceService) {
 
 	srv.BeginTransaction()
 	err := srv.Delete("role001", false)
@@ -154,7 +154,7 @@ func DeleteAttendance(srv hr_services.AttendanceService) {
 	}
 }
 
-func ListAttendances(srv hr_services.AttendanceService) {
+func ListAttendances(srv hr_service.AttendanceService) {
 
 	filter := "" //fmt.Sprintf(`{"%s":"%s"}`, "role_scope", "admin")
 

@@ -1,4 +1,4 @@
-package hr_services
+package hr_service
 
 import (
 	"log"
@@ -13,14 +13,14 @@ import (
 	"github.com/zapscloud/golib-utils/utils"
 )
 
-// HolidayService - Accounts Service structure
-type HolidayService interface {
+// ProjectService - Projects Service structure
+type ProjectService interface {
 	List(filter string, sort string, skip int64, limit int64) (utils.Map, error)
-	Get(holiday_id string) (utils.Map, error)
+	Get(projectId string) (utils.Map, error)
 	Find(filter string) (utils.Map, error)
 	Create(indata utils.Map) (utils.Map, error)
-	Update(holiday_id string, indata utils.Map) (utils.Map, error)
-	Delete(holiday_id string, delete_permanent bool) error
+	Update(projectId string, indata utils.Map) (utils.Map, error)
+	Delete(projectId string, delete_permanent bool) error
 
 	BeginTransaction()
 	CommitTransaction()
@@ -29,13 +29,13 @@ type HolidayService interface {
 	EndService()
 }
 
-// holidayBaseService - Accounts Service structure
-type holidayBaseService struct {
+// projectBaseService - Projects Service structure
+type projectBaseService struct {
 	db_utils.DatabaseService
 	dbRegion            db_utils.DatabaseService
-	daoHoliday          hr_repository.HolidayDao
+	daoProject          hr_repository.ProjectDao
 	daoPlatformBusiness platform_repository.BusinessDao
-	child               HolidayService
+	child               ProjectService
 	businessID          string
 }
 
@@ -43,10 +43,10 @@ func init() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags | log.Lmicroseconds)
 }
 
-func NewHolidayService(props utils.Map) (HolidayService, error) {
+func NewProjectService(props utils.Map) (ProjectService, error) {
 	funcode := hr_common.GetServiceModuleCode() + "M" + "01"
 
-	log.Printf("HolidayService::Start")
+	log.Printf("ProjectService::Start ")
 
 	// Verify whether the business id data passed
 	businessId, err := utils.GetMemberDataStr(props, hr_common.FLD_BUSINESS_ID)
@@ -54,7 +54,7 @@ func NewHolidayService(props utils.Map) (HolidayService, error) {
 		return nil, err
 	}
 
-	p := holidayBaseService{}
+	p := projectBaseService{}
 
 	// Open Database Service
 	err = p.OpenDatabaseService(props)
@@ -73,7 +73,7 @@ func NewHolidayService(props utils.Map) (HolidayService, error) {
 	p.businessID = businessId
 
 	// Instantiate other services
-	p.daoHoliday = hr_repository.NewHolidayDao(p.dbRegion.GetClient(), p.businessID)
+	p.daoProject = hr_repository.NewProjectDao(p.dbRegion.GetClient(), p.businessID)
 	p.daoPlatformBusiness = platform_repository.NewBusinessDao(p.GetClient())
 
 	_, err = p.daoPlatformBusiness.Get(p.businessID)
@@ -90,67 +90,67 @@ func NewHolidayService(props utils.Map) (HolidayService, error) {
 	return &p, nil
 }
 
-func (p *holidayBaseService) EndService() {
+func (p *projectBaseService) EndService() {
 	p.CloseDatabaseService()
 	p.dbRegion.CloseDatabaseService()
 }
 
 // List - List All records
-func (p *holidayBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
+func (p *projectBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
 
-	log.Println("AccountService::FindAll - Begin")
+	log.Println("ProjectService::FindAll - Begin")
 
-	daoHoliday := p.daoHoliday
-	response, err := daoHoliday.List(filter, sort, skip, limit)
+	daoProject := p.daoProject
+	response, err := daoProject.List(filter, sort, skip, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Println("AccountService::FindAll - End ")
+	log.Println("ProjectService::FindAll - End ")
 	return response, nil
 }
 
 // FindByCode - Find By Code
-func (p *holidayBaseService) Get(holiday_id string) (utils.Map, error) {
-	log.Printf("AccountService::FindByCode::  Begin %v", holiday_id)
+func (p *projectBaseService) Get(projectId string) (utils.Map, error) {
+	log.Printf("ProjectService::FindByCode::  Begin %v", projectId)
 
-	data, err := p.daoHoliday.Get(holiday_id)
-	log.Println("AccountService::FindByCode:: End ", err)
+	data, err := p.daoProject.Get(projectId)
+	log.Println("ProjectService::FindByCode:: End ", err)
 	return data, err
 }
 
-func (p *holidayBaseService) Find(filter string) (utils.Map, error) {
-	log.Println("AccountService::FindByCode::  Begin ", filter)
+func (p *projectBaseService) Find(filter string) (utils.Map, error) {
+	log.Println("ProjectService::FindByCode::  Begin ", filter)
 
-	data, err := p.daoHoliday.Find(filter)
-	log.Println("AccountService::FindByCode:: End ", data, err)
+	data, err := p.daoProject.Find(filter)
+	log.Println("ProjectService::FindByCode:: End ", data, err)
 	return data, err
 }
 
-func (p *holidayBaseService) Create(indata utils.Map) (utils.Map, error) {
+func (p *projectBaseService) Create(indata utils.Map) (utils.Map, error) {
 
 	log.Println("UserService::Create - Begin")
 
-	var holidayId string
+	var projectId string
 
-	dataval, dataok := indata[hr_common.FLD_HOLIDAY_ID]
+	dataval, dataok := indata[hr_common.FLD_PROJECT_ID]
 	if dataok {
-		holidayId = strings.ToLower(dataval.(string))
+		projectId = strings.ToLower(dataval.(string))
 	} else {
-		holidayId = utils.GenerateUniqueId("holi")
-		log.Println("Unique Account ID", holidayId)
+		projectId = utils.GenerateUniqueId("projt")
+		log.Println("Unique Project ID", projectId)
 	}
-	indata[hr_common.FLD_HOLIDAY_ID] = holidayId
+	indata[hr_common.FLD_PROJECT_ID] = projectId
 	indata[hr_common.FLD_BUSINESS_ID] = p.businessID
-	log.Println("Provided Account ID:", holidayId)
+	log.Println("Provided Project ID:", projectId)
 
-	_, err := p.daoHoliday.Get(holidayId)
+	_, err := p.daoProject.Get(projectId)
 	if err == nil {
-		err := &utils.AppError{ErrorCode: "S30102", ErrorMsg: "Existing Account ID !", ErrorDetail: "Given Account ID already exist"}
+		err := &utils.AppError{ErrorCode: "S30102", ErrorMsg: "Existing Project ID !", ErrorDetail: "Given Project ID already exist"}
 		return indata, err
 	}
 
-	insertResult, err := p.daoHoliday.Create(indata)
+	insertResult, err := p.daoProject.Create(indata)
 	if err != nil {
 		return indata, err
 	}
@@ -159,55 +159,50 @@ func (p *holidayBaseService) Create(indata utils.Map) (utils.Map, error) {
 }
 
 // Update - Update Service
-func (p *holidayBaseService) Update(holiday_id string, indata utils.Map) (utils.Map, error) {
+func (p *projectBaseService) Update(projectId string, indata utils.Map) (utils.Map, error) {
 
-	log.Println("AccountService::Update - Begin")
+	log.Println("ProjectService::Update - Begin")
 
-	data, err := p.daoHoliday.Get(holiday_id)
+	data, err := p.daoProject.Get(projectId)
 	if err != nil {
 		return data, err
 	}
 
 	// Delete key fields
-	delete(indata, hr_common.FLD_HOLIDAY_ID)
+	delete(indata, hr_common.FLD_PROJECT_ID)
 	delete(indata, hr_common.FLD_BUSINESS_ID)
 
-	data, err = p.daoHoliday.Update(holiday_id, indata)
-	log.Println("AccountService::Update - End ")
+	data, err = p.daoProject.Update(projectId, indata)
+	log.Println("ProjectService::Update - End ")
 	return data, err
 }
 
 // Delete - Delete Service
-func (p *holidayBaseService) Delete(holiday_id string, delete_permanent bool) error {
+func (p *projectBaseService) Delete(projectId string, delete_permanent bool) error {
 
-	log.Println("AccountService::Delete - Begin", holiday_id)
+	log.Println("ProjectService::Delete - Begin", projectId)
 
-	daoHoliday := p.daoHoliday
-	_, err := daoHoliday.Get(holiday_id)
-	if err != nil {
-		return err
-	}
-
+	daoProject := p.daoProject
 	if delete_permanent {
-		result, err := daoHoliday.Delete(holiday_id)
+		result, err := daoProject.Delete(projectId)
 		if err != nil {
 			return err
 		}
 		log.Printf("Delete %v", result)
 	} else {
 		indata := utils.Map{db_common.FLD_IS_DELETED: true}
-		data, err := daoHoliday.Update(holiday_id, indata)
+		data, err := p.Update(projectId, indata)
 		if err != nil {
 			return err
 		}
 		log.Println("Update for Delete Flag", data)
 	}
 
-	log.Printf("HolidayService::Delete - End")
+	log.Printf("ProjectService::Delete - End")
 	return nil
 }
 
-func (p *holidayBaseService) errorReturn(err error) (HolidayService, error) {
+func (p *projectBaseService) errorReturn(err error) (ProjectService, error) {
 	// Close the Database Connection
 	p.EndService()
 	return nil, err

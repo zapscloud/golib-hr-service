@@ -6,11 +6,11 @@ go 1.20
 
 require (
 	github.com/kr/pretty v0.3.1
-	github.com/zapscloud/golib-hr-repository v0.0.0-20231101064432-ff34eda7bc00
 	github.com/zapscloud/golib-business-repository v0.0.0-20231101044633-55bc7df53d6f
 	github.com/zapscloud/golib-dbutils v1.1.1-0.20231016071702-b6e244391427
-	github.com/zapscloud/golib-platform-repository v0.0.0-20231031103720-b9f32a0e966a
-	github.com/zapscloud/golib-platform-service v0.0.0-20231031104525-f578988c4830
+	github.com/zapscloud/golib-hr-repository v0.0.0-20231101064432-ff34eda7bc00
+	github.com/zapscloud/golib-platform-repository v0.0.0-20231104045312-797a30003891
+	github.com/zapscloud/golib-platform-service v0.0.0-20231104045719-1bc36d736307
 	github.com/zapscloud/golib-utils v1.0.1-0.20231013125100-bb65f5737443
 	go.mongodb.org/mongo-driver v1.12.1
 )

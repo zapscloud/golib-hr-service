@@ -1,7 +1,8 @@
-package hr_services
+package hr_service
 
 import (
 	"log"
+	"strings"
 
 	"github.com/zapscloud/golib-dbutils/db_common"
 	"github.com/zapscloud/golib-dbutils/db_utils"
@@ -12,14 +13,14 @@ import (
 	"github.com/zapscloud/golib-utils/utils"
 )
 
-// StaffTypeService - Accounts Service structure
-type StaffTypeService interface {
+// PositionTypeService - Accounts Service structure
+type PositionTypeService interface {
 	List(filter string, sort string, skip int64, limit int64) (utils.Map, error)
-	Get(staffTypeId string) (utils.Map, error)
+	Get(positionTypeId string) (utils.Map, error)
 	Find(filter string) (utils.Map, error)
 	Create(indata utils.Map) (utils.Map, error)
-	Update(staffTypeId string, indata utils.Map) (utils.Map, error)
-	Delete(staffTypeId string, delete_permanent bool) error
+	Update(positionTypeId string, indata utils.Map) (utils.Map, error)
+	Delete(positionTypeId string, delete_permanent bool) error
 
 	BeginTransaction()
 	CommitTransaction()
@@ -28,13 +29,13 @@ type StaffTypeService interface {
 	EndService()
 }
 
-// staffTypeBaseService - Accounts Service structure
-type staffTypeBaseService struct {
+// positionTypeBaseService - Accounts Service structure
+type positionTypeBaseService struct {
 	db_utils.DatabaseService
 	dbRegion            db_utils.DatabaseService
-	daoStaffType        hr_repository.StaffTypeDao
+	daoPositionType     hr_repository.PositionTypeDao
 	daoPlatformBusiness platform_repository.BusinessDao
-	child               StaffTypeService
+	child               PositionTypeService
 	businessID          string
 }
 
@@ -42,17 +43,18 @@ func init() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags | log.Lmicroseconds)
 }
 
-func NewStaffTypeService(props utils.Map) (StaffTypeService, error) {
+func NewPositionTypeService(props utils.Map) (PositionTypeService, error) {
 	funcode := hr_common.GetServiceModuleCode() + "M" + "01"
 
-	log.Printf("StaffTypeService::Start ")
+	log.Printf("PositionTypeService::Start ")
+
 	// Verify whether the business id data passed
 	businessId, err := utils.GetMemberDataStr(props, hr_common.FLD_BUSINESS_ID)
 	if err != nil {
 		return nil, err
 	}
 
-	p := staffTypeBaseService{}
+	p := positionTypeBaseService{}
 
 	// Open Database Service
 	err = p.OpenDatabaseService(props)
@@ -71,7 +73,7 @@ func NewStaffTypeService(props utils.Map) (StaffTypeService, error) {
 	p.businessID = businessId
 
 	// Instantiate other services
-	p.daoStaffType = hr_repository.NewStaffTypeDao(p.dbRegion.GetClient(), p.businessID)
+	p.daoPositionType = hr_repository.NewPositionTypeDao(p.dbRegion.GetClient(), p.businessID)
 	p.daoPlatformBusiness = platform_repository.NewBusinessDao(p.GetClient())
 
 	_, err = p.daoPlatformBusiness.Get(p.businessID)
@@ -88,18 +90,18 @@ func NewStaffTypeService(props utils.Map) (StaffTypeService, error) {
 	return &p, nil
 }
 
-func (p *staffTypeBaseService) EndService() {
+func (p *positionTypeBaseService) EndService() {
 	p.CloseDatabaseService()
 	p.dbRegion.CloseDatabaseService()
 }
 
 // List - List All records
-func (p *staffTypeBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
+func (p *positionTypeBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
 
 	log.Println("AccountService::FindAll - Begin")
 
-	daoStaffType := p.daoStaffType
-	response, err := daoStaffType.List(filter, sort, skip, limit)
+	daoPositionType := p.daoPositionType
+	response, err := daoPositionType.List(filter, sort, skip, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -109,43 +111,45 @@ func (p *staffTypeBaseService) List(filter string, sort string, skip int64, limi
 }
 
 // FindByCode - Find By Code
-func (p *staffTypeBaseService) Get(staffTypeId string) (utils.Map, error) {
-	log.Printf("AccountService::FindByCode::  Begin %v", staffTypeId)
+func (p *positionTypeBaseService) Get(positionTypeId string) (utils.Map, error) {
+	log.Printf("AccountService::FindByCode::  Begin %v", positionTypeId)
 
-	data, err := p.daoStaffType.Get(staffTypeId)
+	data, err := p.daoPositionType.Get(positionTypeId)
 	log.Println("AccountService::FindByCode:: End ", err)
 	return data, err
 }
 
-func (p *staffTypeBaseService) Find(filter string) (utils.Map, error) {
+func (p *positionTypeBaseService) Find(filter string) (utils.Map, error) {
 	log.Println("AccountService::FindByCode::  Begin ", filter)
 
-	data, err := p.daoStaffType.Find(filter)
+	data, err := p.daoPositionType.Find(filter)
 	log.Println("AccountService::FindByCode:: End ", data, err)
 	return data, err
 }
 
-func (p *staffTypeBaseService) Create(indata utils.Map) (utils.Map, error) {
+func (p *positionTypeBaseService) Create(indata utils.Map) (utils.Map, error) {
 
 	log.Println("UserService::Create - Begin")
+	var posTypeId string
 
-	dataval, dataok := indata[hr_common.FLD_STAFFTYPE_ID]
-	if !dataok {
-		uid := utils.GenerateUniqueId("stftyp")
-		log.Println("Unique Account ID", uid)
-		indata[hr_common.FLD_STAFFTYPE_ID] = uid
-		dataval = indata[hr_common.FLD_STAFFTYPE_ID]
+	dataval, dataok := indata[hr_common.FLD_POSITION_TYPE_ID]
+	if dataok {
+		posTypeId = strings.ToLower(dataval.(string))
+	} else {
+		posTypeId = utils.GenerateUniqueId("posityp")
+		log.Println("Unique Account ID", posTypeId)
 	}
+	indata[hr_common.FLD_POSITION_TYPE_ID] = posTypeId
 	indata[hr_common.FLD_BUSINESS_ID] = p.businessID
-	log.Println("Provided Account ID:", dataval)
+	log.Println("Provided Account ID:", posTypeId)
 
-	_, err := p.daoStaffType.Get(dataval.(string))
+	_, err := p.daoPositionType.Get(posTypeId)
 	if err == nil {
 		err := &utils.AppError{ErrorCode: "S30102", ErrorMsg: "Existing Account ID !", ErrorDetail: "Given Account ID already exist"}
 		return indata, err
 	}
 
-	insertResult, err := p.daoStaffType.Create(indata)
+	insertResult, err := p.daoPositionType.Create(indata)
 	if err != nil {
 		return indata, err
 	}
@@ -154,51 +158,55 @@ func (p *staffTypeBaseService) Create(indata utils.Map) (utils.Map, error) {
 }
 
 // Update - Update Service
-func (p *staffTypeBaseService) Update(staffTypeId string, indata utils.Map) (utils.Map, error) {
+func (p *positionTypeBaseService) Update(positionTypeId string, indata utils.Map) (utils.Map, error) {
 
 	log.Println("AccountService::Update - Begin")
 
-	data, err := p.daoStaffType.Get(staffTypeId)
+	data, err := p.daoPositionType.Get(positionTypeId)
 	if err != nil {
 		return data, err
 	}
 
-	data, err = p.daoStaffType.Update(staffTypeId, indata)
+	// Delete key fields
+	delete(indata, hr_common.FLD_POSITION_TYPE_ID)
+	delete(indata, hr_common.FLD_BUSINESS_ID)
+
+	data, err = p.daoPositionType.Update(positionTypeId, indata)
 	log.Println("AccountService::Update - End ")
 	return data, err
 }
 
 // Delete - Delete Service
-func (p *staffTypeBaseService) Delete(staffTypeId string, delete_permanent bool) error {
+func (p *positionTypeBaseService) Delete(positionTypeId string, delete_permanent bool) error {
 
-	log.Println("AccountService::Delete - Begin", staffTypeId)
+	log.Println("AccountService::Delete - Begin", positionTypeId)
 
-	daoStaffType := p.daoStaffType
-	_, err := daoStaffType.Get(staffTypeId)
+	daoPositionType := p.daoPositionType
+	_, err := daoPositionType.Get(positionTypeId)
 	if err != nil {
 		return err
 	}
 
 	if delete_permanent {
-		result, err := daoStaffType.Delete(staffTypeId)
+		result, err := daoPositionType.Delete(positionTypeId)
 		if err != nil {
 			return err
 		}
 		log.Printf("Delete %v", result)
 	} else {
 		indata := utils.Map{db_common.FLD_IS_DELETED: true}
-		data, err := daoStaffType.Update(staffTypeId, indata)
+		data, err := daoPositionType.Update(positionTypeId, indata)
 		if err != nil {
 			return err
 		}
 		log.Println("Update for Delete Flag", data)
 	}
 
-	log.Printf("StaffTypeService::Delete - End")
+	log.Printf("PositionTypeService::Delete - End")
 	return nil
 }
 
-func (p *staffTypeBaseService) errorReturn(err error) (StaffTypeService, error) {
+func (p *positionTypeBaseService) errorReturn(err error) (PositionTypeService, error) {
 	// Close the Database Connection
 	p.EndService()
 	return nil, err

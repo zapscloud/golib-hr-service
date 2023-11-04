@@ -1,4 +1,4 @@
-package hr_services
+package hr_service
 
 import (
 	"log"
