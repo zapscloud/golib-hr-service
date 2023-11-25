@@ -17,6 +17,7 @@ import (
 // ReportsService - Reports Service structure
 type ReportsService interface {
 	GetAttendanceSummary(filter string, aggr string, sort string, skip int64, limit int64) (utils.Map, error)
+	GetLeavePermissionSummary(filter string, aggr string, sort string, skip int64, limit int64) (utils.Map, error)
 
 	BeginTransaction()
 	CommitTransaction()
@@ -113,6 +114,23 @@ func (p *reportsBaseService) GetAttendanceSummary(filter string, aggr string, so
 	p.lookupAppuser(response)
 
 	log.Println("ReportsService::GetAttendanceSummary - End")
+	return response, nil
+}
+
+// GetLeavePermissionSummary retrieves reports data
+func (p *reportsBaseService) GetLeavePermissionSummary(filter string, aggr string, sort string, skip int64, limit int64) (utils.Map, error) {
+	log.Println("ReportsService::GetReportsData - Begin")
+
+	daoReports := p.daoReports
+	response, err := daoReports.GetLeavePermissionSummary(filter, aggr, sort, skip, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	// Lookup Appuser Info
+	p.lookupAppuser(response)
+
+	log.Println("ReportsService::GetLeavePermissionSummary - End")
 	return response, nil
 }
 
