@@ -121,6 +121,9 @@ func (p *staffBaseService) Get(staff_id string) (utils.Map, error) {
 	log.Printf("AccountService::FindByCode::  Begin %v", staff_id)
 
 	data, err := p.daoStaff.Get(staff_id)
+
+	p.mergereportingInfo(data)
+
 	log.Println("AccountService::FindByCode:: End ", err)
 	return data, err
 }
