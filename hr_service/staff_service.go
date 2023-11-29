@@ -110,6 +110,7 @@ func (p *staffBaseService) List(filter string, sort string, skip int64, limit in
 
 	// Lookup Appuser Info
 	p.lookupAppuser(response)
+	p.lookupreportingstaff(response)
 
 	log.Println("AccountService::FindAll - End ")
 	return response, nil
@@ -237,5 +238,36 @@ func (p *staffBaseService) mergeUserInfo(staffInfo utils.Map) {
 
 		// Make it as Array for backward compatible, since all MongoDB Lookups data returned as array
 		staffInfo[hr_common.FLD_STAFF_INFO] = []utils.Map{staffData}
+	}
+}
+
+func (p *staffBaseService) lookupreportingstaff(response utils.Map) {
+
+	// Enumerate All staffs and lookup platform_app_user table
+	dataStaff, err := utils.GetMemberData(response, db_common.LIST_RESULT)
+	if err == nil {
+		staffs := dataStaff.([]utils.Map)
+		for _, staff := range staffs {
+			p.mergereportingInfo(staff)
+		}
+	}
+}
+
+func (p *staffBaseService) mergereportingInfo(reportingstaffInfo utils.Map) {
+	staffDataInterface, _ := reportingstaffInfo[hr_common.FLD_STAFF_DATA]
+
+	staffDatas, _ := staffDataInterface.(utils.Map)
+
+	reportingstaffId, err := utils.GetMemberDataStr(staffDatas, hr_common.FLD_REPORTING_STAFF_ID)
+
+	staffData, err := p.daoPlatformAppUser.Get(reportingstaffId)
+	if err == nil {
+		// Delete unwanted fields
+		delete(staffData, db_common.FLD_CREATED_AT)
+		delete(staffData, db_common.FLD_UPDATED_AT)
+		delete(staffData, platform_common.FLD_APP_USER_ID)
+
+		// Make it as Array for backward compatible, since all MongoDB Lookups data returned as array
+		reportingstaffInfo[hr_common.FLD_REPORTING_STAFF_INFO] = []utils.Map{staffData}
 	}
 }
