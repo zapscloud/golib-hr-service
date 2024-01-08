@@ -9,7 +9,6 @@ import (
 	"github.com/zapscloud/golib-dbutils/db_utils"
 	"github.com/zapscloud/golib-hr-repository/hr_common"
 	"github.com/zapscloud/golib-hr-repository/hr_repository"
-	"github.com/zapscloud/golib-platform-repository/platform_common"
 	"github.com/zapscloud/golib-platform-repository/platform_repository"
 	"github.com/zapscloud/golib-platform-service/platform_service"
 	"github.com/zapscloud/golib-utils/utils"
@@ -143,8 +142,8 @@ func (p *attendanceBaseService) List(filter string, sort string, skip int64, lim
 		return nil, err
 	}
 
-	// Lookup Appuser Info
-	p.lookupAppuser(response)
+	// // Lookup Appuser Info
+	// p.lookupAppuser(response)
 
 	log.Println("AttendanceService::FindAll - End ")
 	return response, nil
@@ -535,31 +534,31 @@ func (p *attendanceBaseService) validateDateTime(indata utils.Map) error {
 	return err
 }
 
-func (p *attendanceBaseService) lookupAppuser(response utils.Map) {
+// func (p *attendanceBaseService) lookupAppuser(response utils.Map) {
 
-	// Enumerate All staffs and lookup platform_app_user table
-	dataStaff, err := utils.GetMemberData(response, db_common.LIST_RESULT)
+// 	// Enumerate All staffs and lookup platform_app_user table
+// 	dataStaff, err := utils.GetMemberData(response, db_common.LIST_RESULT)
 
-	if err == nil {
-		staffs := dataStaff.([]utils.Map)
-		for _, staff := range staffs {
-			p.mergeUserInfo(staff)
-			//log.Println(staff)
-		}
-	}
-}
+// 	if err == nil {
+// 		staffs := dataStaff.([]utils.Map)
+// 		for _, staff := range staffs {
+// 			p.mergeUserInfo(staff)
+// 			//log.Println(staff)
+// 		}
+// 	}
+// }
 
-func (p *attendanceBaseService) mergeUserInfo(staffInfo utils.Map) {
+// func (p *attendanceBaseService) mergeUserInfo(staffInfo utils.Map) {
 
-	staffId, _ := utils.GetMemberDataStr(staffInfo, hr_common.FLD_STAFF_ID)
-	staffData, err := p.daoPlatformAppUser.Get(staffId)
-	if err == nil {
-		// Delete unwanted fields
-		delete(staffData, db_common.FLD_CREATED_AT)
-		delete(staffData, db_common.FLD_UPDATED_AT)
-		delete(staffData, platform_common.FLD_APP_USER_ID)
+// 	staffId, _ := utils.GetMemberDataStr(staffInfo, hr_common.FLD_STAFF_ID)
+// 	staffData, err := p.daoPlatformAppUser.Get(staffId)
+// 	if err == nil {
+// 		// Delete unwanted fields
+// 		delete(staffData, db_common.FLD_CREATED_AT)
+// 		delete(staffData, db_common.FLD_UPDATED_AT)
+// 		delete(staffData, platform_common.FLD_APP_USER_ID)
 
-		// Make it as Array for backward compatible, since all MongoDB Lookups data returned as array
-		staffInfo[hr_common.FLD_STAFF_INFO] = []utils.Map{staffData}
-	}
-}
+// 		// Make it as Array for backward compatible, since all MongoDB Lookups data returned as array
+// 		staffInfo[hr_common.FLD_STAFF_INFO] = []utils.Map{staffData}
+// 	}
+// }
