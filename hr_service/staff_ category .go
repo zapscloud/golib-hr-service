@@ -35,7 +35,7 @@ type Staff_categoryService interface {
 type Staff_categoryBaseService struct {
 	db_utils.DatabaseService
 	dbRegion            db_utils.DatabaseService
-	daoLeave            hr_repository.LeaveDao
+	daoStaff_category   hr_repository.Staff_categoryDao
 	daoPlatformBusiness platform_repository.BusinessDao
 	daoPlatformAppUser  platform_repository.AppUserDao
 	daoStaff            hr_repository.StaffDao
@@ -75,17 +75,16 @@ func NewStaff_categoryService(props utils.Map) (Staff_categoryService, error) {
 		return nil, err
 	}
 
-	// Verify whether the User id data passed, this is optional parameter
-	staffId, _ := utils.GetMemberDataStr(props, hr_common.FLD_STAFF_ID)
+	
 
 	// Assign the BusinessId & StaffId
 	p.businessId = businessId
-	p.staffId = staffId
+	
 
 	// Instantiate other services
 	p.daoPlatformBusiness = platform_repository.NewBusinessDao(p.GetClient())
 	p.daoPlatformAppUser = platform_repository.NewAppUserDao(p.GetClient())
-	p.daoLeave = hr_repository.NewLeaveDao(p.dbRegion.GetClient(), p.businessId, p.staffId)
+	p.daoStaff_category  = hr_repository.NewLeaveDao(p.dbRegion.GetClient(), p.businessId, p.staffId)
 	p.daoStaff = hr_repository.NewStaffDao(p.dbRegion.GetClient(), p.businessId)
 
 	_, err = p.daoPlatformBusiness.Get(p.businessId)
@@ -97,17 +96,17 @@ func NewStaff_categoryService(props utils.Map) (Staff_categoryService, error) {
 		return p.errorReturn(err)
 	}
 
-	// Verify the Staff Exist
-	if len(staffId) > 0 {
-		_, err = p.daoStaff.Get(staffId)
-		if err != nil {
-			err := &utils.AppError{
-				ErrorCode:   funcode + "01",
-				ErrorMsg:    "Invalid StaffId",
-				ErrorDetail: "Given StaffId is not exist"}
-			return p.errorReturn(err)
-		}
-	}
+	// // Verify the Staff Exist
+	// if len(staffId) > 0 {
+	// 	_, err = p.daoStaff.Get(staffId)
+	// 	if err != nil {
+	// 		err := &utils.AppError{
+	// 			ErrorCode:   funcode + "01",
+	// 			ErrorMsg:    "Invalid StaffId",
+	// 			ErrorDetail: "Given StaffId is not exist"}
+	// 		return p.errorReturn(err)
+	// 	}
+	// }
 
 	p.child = &p
 
@@ -124,8 +123,8 @@ func (p *Staff_categoryBaseService) List(filter string, sort string, skip int64,
 
 	log.Println("AccountService::FindAll - Begin")
 
-	daoLeave := p.daoLeave
-	response, err := daoLeave.List(filter, sort, skip, limit)
+	daoStaff_category  := p.daoStaff_category 
+	response, err := daoStaff_category .List(filter, sort, skip, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +140,7 @@ func (p *Staff_categoryBaseService) List(filter string, sort string, skip int64,
 func (p *Staff_categoryBaseService) Get(Staff_categoryId string) (utils.Map, error) {
 	log.Printf("AccountService::FindByCode::  Begin %v", Staff_categoryId)
 
-	data, err := p.daoLeave.Get(Staff_categoryId)
+	data, err := p.daoStaff_category .Get(Staff_categoryId)
 	log.Println("AccountService::FindByCode:: End ", err)
 	return data, err
 }
@@ -149,7 +148,7 @@ func (p *Staff_categoryBaseService) Get(Staff_categoryId string) (utils.Map, err
 func (p *Staff_categoryBaseService) Find(filter string) (utils.Map, error) {
 	log.Println("AccountService::FindByCode::  Begin ", filter)
 
-	data, err := p.daoLeave.Find(filter)
+	data, err := p.daoStaff_category .Find(filter)
 	log.Println("AccountService::FindByCode:: End ", data, err)
 	return data, err
 }
@@ -171,7 +170,7 @@ func (p *Staff_categoryBaseService) Create(indata utils.Map) (utils.Map, error) 
 	indata[hr_common.FLD_BUSINESS_ID] = p.businessId
 	log.Println("Provided Account ID:", Staff_categoryId)
 
-	_, err := p.daoLeave.Get(Staff_categoryId)
+	_, err := p.daoStaff_category .Get(Staff_categoryId)
 	if err == nil {
 		err := &utils.AppError{ErrorCode: "S30102", ErrorMsg: "Existing Account ID !", ErrorDetail: "Given Account ID already exist"}
 		return utils.Map{}, err
@@ -181,7 +180,7 @@ func (p *Staff_categoryBaseService) Create(indata utils.Map) (utils.Map, error) 
 		return utils.Map{}, err
 	}
 
-	insertResult, err := p.daoLeave.Create(indata)
+	insertResult, err := p.daoStaff_category .Create(indata)
 	if err != nil {
 		return utils.Map{}, err
 	}
@@ -194,7 +193,7 @@ func (p *Staff_categoryBaseService) Update(Staff_categoryId string, indata utils
 
 	log.Println("AccountService::Update - Begin")
 
-	data, err := p.daoLeave.Get(Staff_categoryId)
+	data, err := p.daoStaff_category .Get(Staff_categoryId)
 	if err != nil {
 		return data, err
 	}
@@ -209,7 +208,7 @@ func (p *Staff_categoryBaseService) Update(Staff_categoryId string, indata utils
 		return utils.Map{}, err
 	}
 
-	data, err = p.daoLeave.Update(Staff_categoryId, indata)
+	data, err = p.daoStaff_category .Update(Staff_categoryId, indata)
 	log.Println("AccountService::Update - End ")
 	return data, err
 }
@@ -219,21 +218,21 @@ func (p *Staff_categoryBaseService) Delete(Staff_categoryId string, delete_perma
 
 	log.Println("AccountService::Delete - Begin", Staff_categoryId)
 
-	daoLeave := p.daoLeave
-	_, err := daoLeave.Get(Staff_categoryId)
+	daoStaff_category  := p.daoStaff_category 
+	_, err := daoStaff_category .Get(Staff_categoryId)
 	if err != nil {
 		return err
 	}
 
 	if delete_permanent {
-		result, err := daoLeave.Delete(Staff_categoryId)
+		result, err := daoStaff_category .Delete(Staff_categoryId)
 		if err != nil {
 			return err
 		}
 		log.Printf("Delete %v", result)
 	} else {
 		indata := utils.Map{db_common.FLD_IS_DELETED: true}
-		data, err := daoLeave.Update(Staff_categoryId, indata)
+		data, err := daoStaff_category .Update(Staff_categoryId, indata)
 		if err != nil {
 			return err
 		}
@@ -252,16 +251,16 @@ func (p *Staff_categoryBaseService) DeleteAll(delete_permanent bool) error {
 
 	log.Println("Staff_categoryService::DeleteAll - Begin", delete_permanent)
 
-	daoLeave := p.daoLeave
+	daoStaff_category  := p.daoStaff_category 
 	if delete_permanent {
-		result, err := daoLeave.DeleteMany()
+		result, err := daoStaff_category .DeleteMany()
 		if err != nil {
 			return err
 		}
 		log.Printf("Delete %v", result)
 	} else {
 		indata := utils.Map{db_common.FLD_IS_DELETED: true}
-		data, err := daoLeave.UpdateMany(indata)
+		data, err := daoStaff_category .UpdateMany(indata)
 		if err != nil {
 			return err
 		}
