@@ -3,7 +3,6 @@ package hr_service
 import (
 	"log"
 	"strings"
-	"time"
 
 	"github.com/zapscloud/golib-dbutils/db_common"
 	"github.com/zapscloud/golib-dbutils/db_utils"
@@ -75,16 +74,13 @@ func NewStaff_categoryService(props utils.Map) (Staff_categoryService, error) {
 		return nil, err
 	}
 
-	
-
 	// Assign the BusinessId & StaffId
 	p.businessId = businessId
-	
 
 	// Instantiate other services
 	p.daoPlatformBusiness = platform_repository.NewBusinessDao(p.GetClient())
 	p.daoPlatformAppUser = platform_repository.NewAppUserDao(p.GetClient())
-	p.daoStaff_category  = hr_repository.NewLeaveDao(p.dbRegion.GetClient(), p.businessId, p.staffId)
+	p.daoStaff_category = hr_repository.NewStaff_categoryeDao(p.dbRegion.GetClient(), p.businessId, p.staffId)
 	p.daoStaff = hr_repository.NewStaffDao(p.dbRegion.GetClient(), p.businessId)
 
 	_, err = p.daoPlatformBusiness.Get(p.businessId)
@@ -123,8 +119,8 @@ func (p *Staff_categoryBaseService) List(filter string, sort string, skip int64,
 
 	log.Println("AccountService::FindAll - Begin")
 
-	daoStaff_category  := p.daoStaff_category 
-	response, err := daoStaff_category .List(filter, sort, skip, limit)
+	daoStaff_category := p.daoStaff_category
+	response, err := daoStaff_category.List(filter, sort, skip, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +136,7 @@ func (p *Staff_categoryBaseService) List(filter string, sort string, skip int64,
 func (p *Staff_categoryBaseService) Get(Staff_categoryId string) (utils.Map, error) {
 	log.Printf("AccountService::FindByCode::  Begin %v", Staff_categoryId)
 
-	data, err := p.daoStaff_category .Get(Staff_categoryId)
+	data, err := p.daoStaff_category.Get(Staff_categoryId)
 	log.Println("AccountService::FindByCode:: End ", err)
 	return data, err
 }
@@ -148,7 +144,7 @@ func (p *Staff_categoryBaseService) Get(Staff_categoryId string) (utils.Map, err
 func (p *Staff_categoryBaseService) Find(filter string) (utils.Map, error) {
 	log.Println("AccountService::FindByCode::  Begin ", filter)
 
-	data, err := p.daoStaff_category .Find(filter)
+	data, err := p.daoStaff_category.Find(filter)
 	log.Println("AccountService::FindByCode:: End ", data, err)
 	return data, err
 }
@@ -170,17 +166,13 @@ func (p *Staff_categoryBaseService) Create(indata utils.Map) (utils.Map, error) 
 	indata[hr_common.FLD_BUSINESS_ID] = p.businessId
 	log.Println("Provided Account ID:", Staff_categoryId)
 
-	_, err := p.daoStaff_category .Get(Staff_categoryId)
+	_, err := p.daoStaff_category.Get(Staff_categoryId)
 	if err == nil {
 		err := &utils.AppError{ErrorCode: "S30102", ErrorMsg: "Existing Account ID !", ErrorDetail: "Given Account ID already exist"}
 		return utils.Map{}, err
 	}
-	err = p.validateDateTime(indata)
-	if err != nil {
-		return utils.Map{}, err
-	}
 
-	insertResult, err := p.daoStaff_category .Create(indata)
+	insertResult, err := p.daoStaff_category.Create(indata)
 	if err != nil {
 		return utils.Map{}, err
 	}
@@ -193,7 +185,7 @@ func (p *Staff_categoryBaseService) Update(Staff_categoryId string, indata utils
 
 	log.Println("AccountService::Update - Begin")
 
-	data, err := p.daoStaff_category .Get(Staff_categoryId)
+	data, err := p.daoStaff_category.Get(Staff_categoryId)
 	if err != nil {
 		return data, err
 	}
@@ -201,14 +193,7 @@ func (p *Staff_categoryBaseService) Update(Staff_categoryId string, indata utils
 	// Delete key fields
 	delete(indata, hr_common.FLD_STAFF_CATEGORY_ID)
 	delete(indata, hr_common.FLD_BUSINESS_ID)
-	delete(indata, hr_common.FLD_STAFF_ID)
-
-	err = p.validateDateTime(indata)
-	if err != nil {
-		return utils.Map{}, err
-	}
-
-	data, err = p.daoStaff_category .Update(Staff_categoryId, indata)
+	data, err = p.daoStaff_category.Update(Staff_categoryId, indata)
 	log.Println("AccountService::Update - End ")
 	return data, err
 }
@@ -218,21 +203,21 @@ func (p *Staff_categoryBaseService) Delete(Staff_categoryId string, delete_perma
 
 	log.Println("AccountService::Delete - Begin", Staff_categoryId)
 
-	daoStaff_category  := p.daoStaff_category 
-	_, err := daoStaff_category .Get(Staff_categoryId)
+	daoStaff_category := p.daoStaff_category
+	_, err := daoStaff_category.Get(Staff_categoryId)
 	if err != nil {
 		return err
 	}
 
 	if delete_permanent {
-		result, err := daoStaff_category .Delete(Staff_categoryId)
+		result, err := daoStaff_category.Delete(Staff_categoryId)
 		if err != nil {
 			return err
 		}
 		log.Printf("Delete %v", result)
 	} else {
 		indata := utils.Map{db_common.FLD_IS_DELETED: true}
-		data, err := daoStaff_category .Update(Staff_categoryId, indata)
+		data, err := daoStaff_category.Update(Staff_categoryId, indata)
 		if err != nil {
 			return err
 		}
@@ -244,23 +229,23 @@ func (p *Staff_categoryBaseService) Delete(Staff_categoryId string, delete_perma
 }
 
 // ***********************************************
-// DeleteAll - Delete All Leaves/Permissions for the staff
+// DeleteAll - Delete All Staff_category/Permissions for the staff
 //
 // ***********************************************
 func (p *Staff_categoryBaseService) DeleteAll(delete_permanent bool) error {
 
 	log.Println("Staff_categoryService::DeleteAll - Begin", delete_permanent)
 
-	daoStaff_category  := p.daoStaff_category 
+	daoStaff_category := p.daoStaff_category
 	if delete_permanent {
-		result, err := daoStaff_category .DeleteMany()
+		result, err := daoStaff_category.DeleteMany()
 		if err != nil {
 			return err
 		}
 		log.Printf("Delete %v", result)
 	} else {
 		indata := utils.Map{db_common.FLD_IS_DELETED: true}
-		data, err := daoStaff_category .UpdateMany(indata)
+		data, err := daoStaff_category.UpdateMany(indata)
 		if err != nil {
 			return err
 		}
@@ -276,62 +261,3 @@ func (p *Staff_categoryBaseService) errorReturn(err error) (Staff_categoryServic
 	p.EndService()
 	return nil, err
 }
-
-func (p *Staff_categoryBaseService) validateDateTime(indata utils.Map) error {
-
-	// Convert Leave_From string to Date Format
-	dateTime, err := utils.GetMemberDataStr(indata, hr_common.FLD_LEAVE_FROM)
-	if err == nil {
-		_, err = time.Parse(time.DateTime, dateTime)
-		if err != nil {
-			err = &utils.AppError{
-				ErrorCode:   "S30102",
-				ErrorMsg:    "Invalid Staff_category_from",
-				ErrorDetail: "Staff_category_from value is invalid"}
-			return err
-		}
-	}
-
-	// Convert Leave_To string to Date Format
-	dateTime, err = utils.GetMemberDataStr(indata, hr_common.FLD_LEAVE_TO)
-	if err == nil {
-		_, err = time.Parse(time.DateTime, dateTime)
-		if err != nil {
-			err = &utils.AppError{
-				ErrorCode:   "S30102",
-				ErrorMsg:    "Invalid Staff_category_to",
-				ErrorDetail: "Staff_category_to value is invalid"}
-			return err
-		}
-	}
-	return nil
-}
-
-// func (p *Staff_categoryBaseService) lookupAppuser(response utils.Map) {
-
-// 	// Enumerate All staffs and lookup platform_app_user table
-// 	dataStaff, err := utils.GetMemberData(response, db_common.LIST_RESULT)
-
-// 	if err == nil {
-// 		staffs := dataStaff.([]utils.Map)
-// 		for _, staff := range staffs {
-// 			p.mergeUserInfo(staff)
-// 			//log.Println(staff)
-// 		}
-// 	}
-// }
-
-// func (p *Staff_categoryBaseService) mergeUserInfo(staffInfo utils.Map) {
-
-// 	staffId, _ := utils.GetMemberDataStr(staffInfo, hr_common.FLD_STAFF_ID)
-// 	staffData, err := p.daoPlatformAppUser.Get(staffId)
-// 	if err == nil {
-// 		// Delete unwanted fields
-// 		delete(staffData, db_common.FLD_CREATED_AT)
-// 		delete(staffData, db_common.FLD_UPDATED_AT)
-// 		delete(staffData, platform_common.FLD_APP_USER_ID)
-
-// 		// Make it as Array for backward compatible, since all MongoDB Lookups data returned as array
-// 		staffInfo[hr_common.FLD_STAFF_INFO] = []utils.Map{staffData}
-// 	}
-// }
