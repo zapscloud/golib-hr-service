@@ -169,7 +169,6 @@ func (p *Staff_categoryBaseService) Create(indata utils.Map) (utils.Map, error) 
 	}
 	indata[hr_common.FLD_STAFF_CATEGORY_ID] = Staff_categoryId
 	indata[hr_common.FLD_BUSINESS_ID] = p.businessId
-	indata[hr_common.FLD_STAFF_ID] = p.staffId
 	log.Println("Provided Account ID:", Staff_categoryId)
 
 	_, err := p.daoLeave.Get(Staff_categoryId)
