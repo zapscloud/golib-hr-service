@@ -164,7 +164,7 @@ func (p *Staff_categoryBaseService) Create(indata utils.Map) (utils.Map, error) 
 	if dataok {
 		Staff_categoryId = strings.ToLower(dataval.(string))
 	} else {
-		Staff_categoryId = utils.GenerateUniqueId("leav")
+		Staff_categoryId = utils.GenerateUniqueId("stfcat")
 		log.Println("Unique Account ID", Staff_categoryId)
 	}
 	indata[hr_common.FLD_STAFF_CATEGORY_ID] = Staff_categoryId
