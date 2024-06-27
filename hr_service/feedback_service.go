@@ -17,7 +17,6 @@ import (
 type FeedbackService interface {
 	List(filter string, sort string, skip int64, limit int64) (utils.Map, error)
 	Get(feedbackid string) (utils.Map, error)
-	
 
 	Find(filter string) (utils.Map, error)
 	Create(indata utils.Map) (utils.Map, error)
@@ -33,11 +32,11 @@ type FeedbackService interface {
 
 type feedbackBaseService struct {
 	db_utils.DatabaseService
-	dbRegion      db_utils.DatabaseService
+	dbRegion    db_utils.DatabaseService
 	daoFeedback hr_repository.FeedbackDao
-	daoBusiness   platform_repository.BusinessDao
-	child         FeedbackService
-	businessID    string
+	daoBusiness platform_repository.BusinessDao
+	child       FeedbackService
+	businessID  string
 }
 
 func init() {
@@ -112,7 +111,6 @@ func (p *feedbackBaseService) List(filter string, sort string, skip int64, limit
 	return response, nil
 }
 
-
 // FindByCode - Find By Code
 func (p *feedbackBaseService) Get(feedback_id string) (utils.Map, error) {
 	log.Printf("FeedbackService::FindByCode::  Begin %v", feedback_id)
@@ -135,15 +133,15 @@ func (p *feedbackBaseService) Create(indata utils.Map) (utils.Map, error) {
 	log.Println("UserService::Create - Begin")
 	var deptId string
 
-	dataval, dataok := indata[hr_common.FLD_DEPARTMENT_ID]
+	dataval, dataok := indata[hr_common.FLD_FEEDBACK_ID]
 	if dataok {
 		deptId = strings.ToLower(dataval.(string))
 	} else {
-		deptId = utils.GenerateUniqueId("dept")
+		deptId = utils.GenerateUniqueId("fedback")
 		log.Println("Unique Feedback ID", deptId)
 	}
 
-	indata[hr_common.FLD_DEPARTMENT_ID] = deptId
+	indata[hr_common.FLD_FEEDBACK_ID] = deptId
 	indata[hr_common.FLD_BUSINESS_ID] = p.businessID
 	log.Println("Provided Feedback ID:", dataval)
 
@@ -172,7 +170,7 @@ func (p *feedbackBaseService) Update(feedback_id string, indata utils.Map) (util
 	}
 	// Delete unique fields
 	delete(indata, hr_common.FLD_BUSINESS_ID)
-	delete(indata, hr_common.FLD_DEPARTMENT_ID)
+	delete(indata, hr_common.FLD_FEEDBACK_ID)
 
 	data, err = p.daoFeedback.Update(feedback_id, indata)
 	log.Println("FeedbackService::Update - End ")
