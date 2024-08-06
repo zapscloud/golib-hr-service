@@ -23,6 +23,7 @@ const (
 // AttendanceService - Attendances Service structure
 type AttendanceService interface {
 	List(filter string, sort string, skip int64, limit int64) (utils.Map, error)
+	ListNew(filter string, sort string, skip int64, limit int64) (utils.Map, error)
 	Get(attendance_id string) (utils.Map, error)
 	Find(filter string) (utils.Map, error)
 	// Create(indata utils.Map) (utils.Map, error)
@@ -146,6 +147,23 @@ func (p *attendanceBaseService) List(filter string, sort string, skip int64, lim
 	// Lookup Appuser Info
 	p.lookupAppuser(response)
 
+	log.Println("AttendanceService::FindAll - End ")
+	return response, nil
+}
+
+// ************************
+// List - List All records
+//
+// ************************
+func (p *attendanceBaseService) ListNew(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
+
+	log.Println("AttendanceService::FindAll - Begin")
+
+	daoAttendance := p.daoAttendance
+	response, err := daoAttendance.ListNew(filter, sort, skip, limit)
+	if err != nil {
+		return nil, err
+	}
 	log.Println("AttendanceService::FindAll - End ")
 	return response, nil
 }
