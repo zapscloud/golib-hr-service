@@ -133,7 +133,7 @@ func (p *leaveBaseService) List(filter string, sort string, skip int64, limit in
 	}
 
 	// Lookup Appuser Info
-	p.lookupAppuser(response)
+	//p.lookupAppuser(response)
 
 	log.Println("AccountService::FindAll - End ")
 	return response, nil

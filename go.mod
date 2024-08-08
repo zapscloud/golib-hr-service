@@ -8,7 +8,7 @@ require (
 	github.com/kr/pretty v0.3.1
 	github.com/zapscloud/golib-business-repository v0.0.0-20231211055934-28db6098bc5e
 	github.com/zapscloud/golib-dbutils v1.1.1-0.20231124095025-d80e6a37988a
-	github.com/zapscloud/golib-hr-repository v0.0.0-20240806053425-c64e2bc7286c
+	github.com/zapscloud/golib-hr-repository v0.0.0-20240808064613-fa27f14672d2
 	github.com/zapscloud/golib-platform-repository v0.0.0-20240217081220-186f9ee25fec
 	github.com/zapscloud/golib-platform-service v0.0.0-20231104052444-07da4e75a984
 	github.com/zapscloud/golib-utils v1.0.1-0.20231226111345-99b9295b391e
