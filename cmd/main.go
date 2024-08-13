@@ -165,3 +165,15 @@ func ListAttendances(srv hr_service.AttendanceService) {
 	log.Println("List User summary ", res)
 	pretty.Print(res)
 }
+
+func NEWListAttendances(srv hr_service.AttendanceService) {
+
+	filter := "" //fmt.Sprintf(`{"%s":"%s"}`, "role_scope", "admin")
+
+	sort := `{ "role_scope":1, "role_id":1}`
+
+	res, err := srv.ListNew(filter, sort, 0, 0)
+	log.Println("List User success ", err)
+	log.Println("List User summary ", res)
+	pretty.Print(res)
+}
